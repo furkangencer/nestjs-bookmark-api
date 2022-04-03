@@ -31,9 +31,20 @@ export class AuthService {
     return user;
   }
 
-  signin() {
-    return {
-      msg: 'signed in',
-    };
+  async signin(authDto: AuthDto): Promise<User> {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        email: authDto.email,
+      },
+    });
+    if (!user) {
+      throw new ForbiddenException('Invalid email or password');
+    }
+    const validPassword = await argon.verify(user.hash, authDto.password);
+    if (!validPassword) {
+      throw new ForbiddenException('Invalid email or password');
+    }
+    delete user.hash;
+    return user;
   }
 }
