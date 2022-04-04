@@ -8,13 +8,12 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
-  signup(@Body() authDto: AuthDto): Promise<User> {
-    console.log(authDto);
-    return this.authService.signup(authDto);
+  signUp(@Body() authDto: AuthDto): Promise<User> {
+    return this.authService.signUp(authDto);
   }
 
   @Post('signin')
-  signin(@Body() authDto: AuthDto): Promise<User> {
-    return this.authService.signin(authDto);
+  signIn(@Body() authDto: AuthDto): Promise<{ accessToken: string }> {
+    return this.authService.signIn(authDto);
   }
 }
