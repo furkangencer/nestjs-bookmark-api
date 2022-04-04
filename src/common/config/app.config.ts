@@ -1,5 +1,5 @@
 import * as Joi from 'joi';
-import { Environment } from '../common/enums';
+import { Environment } from '../enums';
 
 export const configValidationSchema = Joi.object().keys({
   NODE_ENV: Joi.string()

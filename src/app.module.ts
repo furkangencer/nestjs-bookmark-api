@@ -1,11 +1,12 @@
 import { Module, ValidationPipe } from '@nestjs/common';
-import { APP_PIPE } from '@nestjs/core';
+import { APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { JwtGuard } from './auth/guard';
 import { UserModule } from './user/user.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
-import { config, configValidationSchema } from './config/app.config';
+import { config, configValidationSchema } from './common/config/app.config';
 
 @Module({
   imports: [
@@ -29,6 +30,10 @@ import { config, configValidationSchema } from './config/app.config';
         new ValidationPipe({
           whitelist: true,
         }),
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtGuard,
     },
   ],
 })
