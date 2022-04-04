@@ -1,15 +1,20 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import * as argon from 'argon2';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthDto } from './dto';
+import { JwtPayload } from './jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
-  async signup(authDto: AuthDto): Promise<User> {
+  async signUp(authDto: AuthDto): Promise<User> {
     const hash = await argon.hash(authDto.password);
     const user = await this.prismaService.user
       .create({
@@ -31,9 +36,28 @@ export class AuthService {
     return user;
   }
 
-  signin() {
-    return {
-      msg: 'signed in',
-    };
+  async signIn(authDto: AuthDto): Promise<{ accessToken: string }> {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        email: authDto.email,
+      },
+    });
+    if (!user) {
+      throw new ForbiddenException('Invalid email or password');
+    }
+    const validPassword = await argon.verify(user.hash, authDto.password);
+    if (!validPassword) {
+      throw new ForbiddenException('Invalid email or password');
+    }
+    const accessToken = await this.signToken({
+      userId: user.id,
+      email: user.email,
+    });
+
+    return { accessToken };
+  }
+
+  private signToken(jwtPaylaod: JwtPayload): Promise<string> {
+    return this.jwtService.signAsync(jwtPaylaod);
   }
 }
