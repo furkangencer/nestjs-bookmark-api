@@ -5,6 +5,7 @@ import * as pactum from 'pactum';
 import { AppModule } from './../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { AuthDto } from '../src/auth/dto';
+import { EditUserDto } from '../src/user/dto';
 
 describe('App (e2e)', () => {
   const port = process.env.PORT || 3333;
@@ -149,9 +150,34 @@ describe('App (e2e)', () => {
           })
           .expectStatus(200);
       });
+
+      it('should throw error if no accessToken is provided', async () => {
+        return pactum.spec().get('/users/me').expectStatus(401);
+      });
+
+      it('should throw error if no user is found for provided accessToken', async () => {
+        return pactum.spec().get('/users/me').expectStatus(401);
+      });
     });
 
-    // describe('Edit user', () => {});
+    describe('Edit user', () => {
+      const dto: EditUserDto = {
+        email: 'john@doe.com',
+        firstName: 'John',
+      };
+      it('should edit user', async () => {
+        return pactum
+          .spec()
+          .patch('/users')
+          .withHeaders({
+            Authorization: `Bearer $S{accessToken}`,
+          })
+          .withBody(dto)
+          .expectStatus(200)
+          .expectBodyContains(dto.email)
+          .expectBodyContains(dto.firstName);
+      });
+    });
   });
 
   // describe('Bookmark', () => {
